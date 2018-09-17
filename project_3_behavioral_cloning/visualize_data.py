@@ -41,7 +41,7 @@ def visualize_bias_parameter_effect(train_data):
 
 if __name__ == '__main__':
 
-    train_data, val_data = split_train_val(csv_driving_data='data/driving_log_teebone.csv')
+    train_data, val_data = split_train_val(csv_driving_data='data/driving_log_AI.csv')
 
     visualize_steering_distribution(train_data)
 
