@@ -66,7 +66,7 @@ def get_nvidia_model(summary=True):
 if __name__ == '__main__':
 
     # split udacity csv data into training and validation
-    train_data, val_data = split_train_val(csv_driving_data='data/driving_log.csv')
+    train_data, val_data = split_train_val(csv_driving_data='data/driving_log_teebone.csv')
 
     # get network model and compile it (default Adam opt)
     nvidia_net = get_nvidia_model(summary=True)
