@@ -1,4 +1,4 @@
-import argparse
+#import argparse
 import base64
 import json
 import cv2
@@ -17,11 +17,12 @@ from config import *
 from load_data import preprocess
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
+import sys
 
 # Fix error with Keras and TensorFlow
 import tensorflow as tf
 
-tf.python.control_flow_ops = tf
+#tf.python.control_flow_ops = tf
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -36,7 +37,7 @@ def telemetry(sid, data):
     # The current throttle of the car
     throttle = data["throttle"]
     # The current speed of the car
-    speed = data["speed"]
+    speed = float(data["speed"])
     # The current image from the center camera of the car
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
@@ -54,9 +55,17 @@ def telemetry(sid, data):
     steering_angle = float(model.predict(image_array, batch_size=1))
 
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.28
+    #throttle = throttle_control(float(sys.argv[2]),speed,steering_angle)
+    throttle = 0.05
     print(steering_angle, throttle)
     send_control(steering_angle, throttle)
+
+def throttle_control(default_throttle,current_speed,steering_angle):
+    if abs(steering_angle) > 1.0 and current_speed > 1.0:
+        throttle = 0.01
+    else:
+        throttle = default_throttle
+    return throttle
 
 
 @sio.on('connect')
@@ -77,18 +86,22 @@ if __name__ == '__main__':
     from keras.models import model_from_json
 
     # load model from json
-    json_path ='pretrained/model.json'
+    #json_path ='pretrained/model.json'
+    #json_path ='logs/model.json'
+    json_path = sys.argv[1]
     with open(json_path) as jfile:
         model = model_from_json(jfile.read())
 
     # load model weights
     # weights_path = os.path.join('checkpoints', os.listdir('checkpoints')[-1])
-    weights_path = 'pretrained/model.hdf5'
+    #weights_path = 'pretrained/model.hdf5'
+    weights_path = sys.argv[2]
     print('Loading weights: {}'.format(weights_path))
     model.load_weights(weights_path)
 
     # compile the model
-    model.compile("adam", "mse")
+    #model.compile("adam", "mse")
+    model.compile("sgd", "mse")
 
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
