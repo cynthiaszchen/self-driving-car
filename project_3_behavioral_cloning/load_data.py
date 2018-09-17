@@ -4,7 +4,7 @@ import numpy as np
 import csv
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import random
 import keras.backend as K
 from config import *
@@ -19,7 +19,8 @@ def split_train_val(csv_driving_data, test_size=0.2):
     """
     with open(csv_driving_data, 'r') as f:
         reader = csv.reader(f)
-        driving_data = [row for row in reader][1:]
+        #driving_data = [row for row in reader][1:]
+        driving_data = [row for row in reader]
 
     train_data, val_data = train_test_split(driving_data, test_size=test_size, random_state=1)
 
@@ -84,7 +85,8 @@ def load_data_batch(data, batchsize=CONFIG['batchsize'], data_dir='data', augmen
     loaded_elements = 0
     while loaded_elements < batchsize:
 
-        ct_path, lt_path, rt_path, steer, throttle, brake, speed = shuffled_data.pop()
+        #ct_path, lt_path, rt_path, steer, throttle, brake, speed = shuffled_data.pop()
+        ct_path, steer, throttle, brake, speed, time_stamp, lap = shuffled_data.pop()
 
         # cast strings to float32
         steer = np.float32(steer)
@@ -92,8 +94,10 @@ def load_data_batch(data, batchsize=CONFIG['batchsize'], data_dir='data', augmen
 
         # randomly choose which camera to use among (central, left, right)
         # in case the chosen camera is not the frontal one, adjust steer accordingly
+        
         delta_correction = CONFIG['delta_correction']
-        camera = random.choice(['frontal', 'left', 'right'])
+        #camera = random.choice(['frontal', 'left', 'right'])
+        camera = random.choice(['frontal'])
         if camera == 'frontal':
             frame = preprocess(cv2.imread(join(data_dir, ct_path.strip())))
             steer = steer
@@ -103,7 +107,7 @@ def load_data_batch(data, batchsize=CONFIG['batchsize'], data_dir='data', augmen
         elif camera == 'right':
             frame = preprocess(cv2.imread(join(data_dir, rt_path.strip())))
             steer = steer - delta_correction
-
+        
         if augment_data:
 
             # mirror images with chance=0.5
@@ -158,6 +162,5 @@ if __name__ == '__main__':
 
     # debugging purpose
     train_data, val_data = split_train_val(csv_driving_data='data/driving_log.csv')
-
 
 
